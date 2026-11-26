@@ -4,49 +4,53 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - SmartWarranty</title>
+    <meta name="theme-color" content="#173b5f" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-        <div class="container">
+<body>
+    <nav class="navbar navbar-expand-lg app-navbar sticky-top">
+        <div class="container-fluid px-3 px-lg-4">
             @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Admin"))
             {
-                <a class="navbar-brand fw-bold" asp-controller="Admin" asp-action="Dashboard">SmartWarranty</a>
+                <a class="navbar-brand app-brand" asp-controller="Admin" asp-action="Dashboard">
+                    <span class="brand-mark" aria-hidden="true">SW</span><span>SmartWarranty</span>
+                </a>
             }
             else if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Customer"))
             {
-                <a class="navbar-brand fw-bold" asp-controller="Customer" asp-action="Dashboard">SmartWarranty</a>
+                <a class="navbar-brand app-brand" asp-controller="Customer" asp-action="Dashboard">
+                    <span class="brand-mark" aria-hidden="true">SW</span><span>SmartWarranty</span>
+                </a>
             }
             else
             {
-                <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">SmartWarranty</a>
+                <a class="navbar-brand app-brand" asp-controller="Home" asp-action="Index">
+                    <span class="brand-mark" aria-hidden="true">SW</span><span>SmartWarranty</span>
+                </a>
             }
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="mainNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="About">About</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Features">Features</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="HowItWorks">How It Works</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Contact">Contact</a></li>
-                </ul>
-                <ul class="navbar-nav ms-auto">
-                    @if (User.Identity != null && User.Identity.IsAuthenticated)
-                    {
-                        if (User.IsInRole("Admin"))
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <ul class="navbar-nav mx-auto app-nav">
+                        @if (User.IsInRole("Admin"))
                         {
+                            <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Customers">Customers</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Products">Products</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Warranties">Warranties</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="ServiceRequests">Requests</a></li>
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Admin</a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Customers">Customers</a></li>
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">More</a>
+                                <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" asp-controller="Admin" asp-action="Brands">Brands</a></li>
                                     <li><a class="dropdown-item" asp-controller="Admin" asp-action="Categories">Categories</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Products">Products</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Warranties">Warranties</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="ServiceRequests">Service Requests</a></li>
                                     <li><a class="dropdown-item" asp-controller="Admin" asp-action="Support">Manufacturer Support</a></li>
                                     <li><a class="dropdown-item" asp-controller="Admin" asp-action="Reports">Reports</a></li>
                                 </ul>
@@ -54,44 +58,64 @@
                         }
                         else if (User.IsInRole("Customer"))
                         {
+                            <li class="nav-item"><a class="nav-link" asp-controller="Customer" asp-action="Dashboard">Dashboard</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Customer" asp-action="Products">Products</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Customer" asp-action="Warranties">Warranties</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Customer" asp-action="Documents">Documents</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Customer" asp-action="ServiceRequests">Requests</a></li>
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">My Account</a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" asp-controller="Customer" asp-action="Dashboard">Dashboard</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Customer" asp-action="Products">My Products</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Customer" asp-action="Warranties">Warranties</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Customer" asp-action="Documents">Documents</a></li>
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">More</a>
+                                <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" asp-controller="Customer" asp-action="Eligibility">Warranty Eligibility</a></li>
                                     <li><a class="dropdown-item" asp-controller="Customer" asp-action="ManufacturerSupport">Manufacturer Support</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Customer" asp-action="ServiceRequests">Service Requests</a></li>
                                     <li><a class="dropdown-item" asp-controller="Customer" asp-action="ServiceHistory">Service History</a></li>
                                     <li><a class="dropdown-item" asp-controller="Customer" asp-action="Notifications">Notifications</a></li>
                                     <li><a class="dropdown-item" asp-controller="Customer" asp-action="Profile">Profile</a></li>
                                 </ul>
                             </li>
                         }
-                        <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Logout">Logout</a></li>
+                    </ul>
+                }
+                else
+                {
+                    <ul class="navbar-nav mx-auto app-nav">
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="About">About</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Features">Features</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="HowItWorks">How It Works</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Contact">Contact</a></li>
+                    </ul>
+                }
+                <ul class="navbar-nav ms-lg-2 align-items-lg-center">
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <li class="nav-item ms-lg-2"><a class="btn btn-outline-light btn-sm px-3" asp-controller="Account" asp-action="Logout">Log out</a></li>
                     }
                     else
                     {
-                        <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="CustomerLogin">Customer Login</a></li>
-                        <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="CustomerRegister">Register</a></li>
-                        <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="AdminLogin">Admin Login</a></li>
+                        <li class="nav-item me-lg-2"><a class="nav-link" asp-controller="Account" asp-action="CustomerLogin">Log in</a></li>
+                        <li class="nav-item"><a class="btn btn-accent btn-sm px-3" asp-controller="Account" asp-action="CustomerRegister">Create account</a></li>
                     }
                 </ul>
             </div>
         </div>
     </nav>
 
-    <main>
-        <div class="container py-4">
+    <main class="app-main">
+        <div class="container-fluid px-3 px-lg-4 py-4">
             @if (TempData["SuccessMessage"] != null)
             {
-                <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                <div class="alert app-alert app-alert-success alert-dismissible fade show" role="status">
+                    <strong>Success.</strong> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             }
             @if (TempData["ErrorMessage"] != null)
             {
-                <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                <div class="alert app-alert app-alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Unable to complete.</strong> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             }
             @if (ViewData["ActiveNotifications"] is IEnumerable<SmartWarranty_2.Models.Notification> activeNotifications)
             {
@@ -112,7 +136,7 @@
         </div>
     </main>
 
-    <footer class="border-top bg-white mt-5">
+    <footer class="app-footer border-top mt-5">
         <div class="container py-4 text-center text-muted">
             &copy; 2026 SmartWarranty - Digital Warranty & Product Lifecycle Management
         </div>

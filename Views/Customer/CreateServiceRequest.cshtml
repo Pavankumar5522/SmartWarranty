@@ -3,8 +3,12 @@
     ViewData["Title"] = "Create Service Request";
     var products = ViewBag.Products as IEnumerable<SmartWarranty_2.Models.Product> ?? Enumerable.Empty<SmartWarranty_2.Models.Product>();
 }
-<h2>Submit Service Request</h2>
-<form asp-action="CreateServiceRequest" method="post">
+<div class="page-header">
+    <div><div class="page-eyebrow">Support</div><h2>Submit service request</h2></div>
+    <a asp-action="ServiceRequests" class="btn btn-outline-secondary">Cancel</a>
+</div>
+<div class="card"><div class="card-body p-4">
+<form asp-action="CreateServiceRequest" method="post" data-submit-feedback>
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <div class="row g-3">
@@ -31,8 +35,9 @@
             <span asp-validation-for="ClaimReferenceNumber" class="text-danger"></span>
         </div>
     </div>
-    <button class="btn btn-primary mt-3" type="submit">Submit Request</button>
+    <button class="btn btn-primary mt-3" type="submit" data-loading-text="Submitting request...">Submit request</button>
 </form>
+</div></div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

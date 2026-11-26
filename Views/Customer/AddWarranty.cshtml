@@ -3,8 +3,12 @@
     ViewData["Title"] = "Add Warranty";
     var products = ViewBag.Products as IEnumerable<SmartWarranty_2.Models.Product> ?? Enumerable.Empty<SmartWarranty_2.Models.Product>();
 }
-<h2>Add Warranty</h2>
-<form asp-action="AddWarranty" method="post">
+<div class="page-header">
+    <div><div class="page-eyebrow">Coverage</div><h2>Add warranty</h2></div>
+    <a asp-action="Warranties" class="btn btn-outline-secondary">Cancel</a>
+</div>
+<div class="card"><div class="card-body p-4">
+<form asp-action="AddWarranty" method="post" data-submit-feedback>
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <div class="row g-3">
@@ -13,8 +17,9 @@
         <div class="col-md-6"><label asp-for="DurationMonths" class="form-label"></label><input asp-for="DurationMonths" class="form-control" /><span asp-validation-for="DurationMonths" class="text-danger"></span></div>
         <div class="col-md-12"><label asp-for="WarrantyType" class="form-label"></label><input asp-for="WarrantyType" class="form-control" /><span asp-validation-for="WarrantyType" class="text-danger"></span><div class="form-text">The expiry date is calculated from the start date and duration.</div></div>
     </div>
-    <button class="btn btn-primary mt-3" type="submit">Save Warranty</button>
+    <button class="btn btn-primary mt-3" type="submit" data-loading-text="Saving warranty...">Save warranty</button>
 </form>
+</div></div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

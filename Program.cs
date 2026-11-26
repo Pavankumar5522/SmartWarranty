@@ -23,6 +23,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<IInvoiceRecognitionService, InvoiceRecognitionService>();
+builder.Services.AddSingleton<DocumentStorageService>();
 
 var app = builder.Build();
 
@@ -33,6 +34,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 DbInitializer.Initialize(app);
+app.Services.GetRequiredService<DocumentStorageService>().MigrateLegacyFiles();
 
 if (!app.Environment.IsDevelopment())
 {
@@ -41,6 +43,16 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/uploads"))
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+
+    await next();
+});
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();

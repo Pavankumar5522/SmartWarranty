@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Pavan\\SmartWarranty(Naresh)\\Smartwarranty-main\\Smartwarranty_2.csproj": {}
+    "D:\\Pavan\\SmartWarranty(Naresh)\\SmartWarranty\\Smartwarranty_2.csproj": {}
   },
   "projects": {
-    "D:\\Pavan\\SmartWarranty(Naresh)\\Smartwarranty-main\\Smartwarranty_2.csproj": {
+    "D:\\Pavan\\SmartWarranty(Naresh)\\SmartWarranty\\Smartwarranty_2.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Pavan\\SmartWarranty(Naresh)\\Smartwarranty-main\\Smartwarranty_2.csproj",
+        "projectUniqueName": "D:\\Pavan\\SmartWarranty(Naresh)\\SmartWarranty\\Smartwarranty_2.csproj",
         "projectName": "Smartwarranty_2",
-        "projectPath": "D:\\Pavan\\SmartWarranty(Naresh)\\Smartwarranty-main\\Smartwarranty_2.csproj",
+        "projectPath": "D:\\Pavan\\SmartWarranty(Naresh)\\SmartWarranty\\Smartwarranty_2.csproj",
         "packagesPath": "C:\\Users\\karth\\.nuget\\packages\\",
-        "outputPath": "D:\\Pavan\\SmartWarranty(Naresh)\\Smartwarranty-main\\obj\\",
+        "outputPath": "D:\\Pavan\\SmartWarranty(Naresh)\\SmartWarranty\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\karth\\AppData\\Roaming\\NuGet\\NuGet.Config"

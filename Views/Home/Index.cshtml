@@ -2,20 +2,20 @@
     ViewData["Title"] = "Home";
 }
 
-<section class="hero bg-primary text-white rounded-4 p-5 mb-4">
+<section class="hero-modern position-relative p-4 p-lg-5 mb-4">
+    <div class="hero-shape" aria-hidden="true"></div>
     <div class="row align-items-center">
         <div class="col-lg-7">
-            <span class="badge bg-light text-primary mb-3">Digital Warranty Management</span>
-            <h1 class="display-5 fw-bold">SmartWarranty keeps every product, warranty, and claim in one secure place.</h1>
-            <p class="lead mt-3">Track product registrations, warranty expiry dates, service history, support links, and document uploads for every product you own.</p>
+            <div class="page-eyebrow text-warning mb-3">Digital warranty management</div>
+            <h1 class="display-5 fw-bold">Keep every product, warranty, and claim in one place.</h1>
+            <p class="lead mt-3 text-white-50">Track coverage, receipts, manufacturer support, and service progress from one organized workspace.</p>
             <div class="d-flex gap-3 flex-wrap mt-4">
-                <a asp-controller="Account" asp-action="CustomerRegister" class="btn btn-light btn-lg">Get Started</a>
-                <a asp-controller="Account" asp-action="CustomerLogin" class="btn btn-outline-light btn-lg">Customer Login</a>
-                <a asp-controller="Account" asp-action="CustomerRegister" class="btn btn-outline-light btn-lg">Register Now</a>
+                <a asp-controller="Account" asp-action="CustomerRegister" class="btn btn-accent btn-lg">Get started</a>
+                <a asp-controller="Account" asp-action="CustomerLogin" class="btn btn-outline-light btn-lg">Customer log in</a>
             </div>
         </div>
         <div class="col-lg-5 text-center">
-            <div class="bg-white text-dark rounded-4 p-4 shadow">
+            <div class="bg-white text-dark rounded-4 p-4 shadow position-relative">
                 <div class="small text-uppercase text-muted mb-2">Overview</div>
                 <div class="display-6 fw-bold text-primary">24/7</div>
                 <div class="text-muted">Warranty visibility and service tracking</div>

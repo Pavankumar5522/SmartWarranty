@@ -17,15 +17,18 @@ public class CustomerController : Controller
     private readonly SmartWarrantyDbContext _context;
     private readonly DashboardService _dashboardService;
     private readonly IInvoiceRecognitionService _invoiceRecognitionService;
+    private readonly DocumentStorageService _documentStorage;
 
     public CustomerController(
         SmartWarrantyDbContext context,
         DashboardService dashboardService,
-        IInvoiceRecognitionService invoiceRecognitionService)
+        IInvoiceRecognitionService invoiceRecognitionService,
+        DocumentStorageService documentStorage)
     {
         _context = context;
         _dashboardService = dashboardService;
         _invoiceRecognitionService = invoiceRecognitionService;
+        _documentStorage = documentStorage;
     }
 
     private int CurrentCustomerId => int.Parse(User.FindFirstValue("UserId") ?? "0");
@@ -117,10 +120,9 @@ public class CustomerController : Controller
         _context.Products.Remove(product);
         await _context.SaveChangesAsync();
 
-        var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
         foreach (var storedFileName in storedFileNames)
         {
-            var path = Path.Combine(uploadsPath, storedFileName);
+            var path = _documentStorage.GetFilePath(storedFileName);
             if (System.IO.File.Exists(path))
             {
                 System.IO.File.Delete(path);
@@ -334,12 +336,11 @@ public class CustomerController : Controller
             recognition = await _invoiceRecognitionService.RecognizeAsync(invoiceStream, extension);
         }
 
-        var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-        Directory.CreateDirectory(uploadsPath);
+        Directory.CreateDirectory(_documentStorage.StoragePath);
 
         var storedName = Guid.NewGuid() + extension;
-        var fullPath = Path.Combine(uploadsPath, storedName);
-        await using (var stream = new FileStream(fullPath, FileMode.Create))
+        var fullPath = _documentStorage.GetFilePath(storedName);
+        await using (var stream = new FileStream(fullPath, FileMode.CreateNew))
         {
             await file.CopyToAsync(stream);
         }
@@ -471,8 +472,41 @@ public class CustomerController : Controller
             return Forbid();
         }
 
-        var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", document.StoredFileName);
-        return PhysicalFile(path, document.ContentType, document.FileName);
+        var path = _documentStorage.GetFilePath(document.StoredFileName);
+        if (!System.IO.File.Exists(path))
+        {
+            return NotFound();
+        }
+
+        return PhysicalFile(path, GetDocumentContentType(document.StoredFileName), document.FileName);
+    }
+
+    public async Task<IActionResult> ViewDocument(int id)
+    {
+        var document = await _context.ProductDocuments
+            .Include(d => d.Product)
+            .FirstOrDefaultAsync(d => d.Id == id);
+        if (document == null || document.Product.CustomerId != CurrentCustomerId)
+        {
+            return Forbid();
+        }
+
+        var contentType = GetPreviewContentType(document.StoredFileName);
+        if (contentType == null)
+        {
+            return StatusCode(StatusCodes.Status415UnsupportedMediaType);
+        }
+
+        var path = _documentStorage.GetFilePath(document.StoredFileName);
+        if (!System.IO.File.Exists(path))
+        {
+            return NotFound();
+        }
+
+        Response.Headers["Content-Disposition"] = "inline";
+        Response.Headers["X-Content-Type-Options"] = "nosniff";
+        Response.Headers["Cache-Control"] = "private, no-store";
+        return PhysicalFile(path, contentType, enableRangeProcessing: true);
     }
 
     public async Task<IActionResult> DeleteDocument(int id)
@@ -483,7 +517,7 @@ public class CustomerController : Controller
             return Forbid();
         }
 
-        var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", document.StoredFileName);
+        var path = _documentStorage.GetFilePath(document.StoredFileName);
         if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
 
         _context.ProductDocuments.Remove(document);
@@ -491,6 +525,19 @@ public class CustomerController : Controller
         TempData["SuccessMessage"] = "Document deleted.";
         return RedirectToAction(nameof(Documents));
     }
+
+    private static string GetDocumentContentType(string storedFileName) =>
+        GetPreviewContentType(storedFileName) ?? "application/octet-stream";
+
+    private static string? GetPreviewContentType(string storedFileName) =>
+        Path.GetExtension(storedFileName).ToLowerInvariant() switch
+        {
+            ".pdf" => "application/pdf",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            _ => null
+        };
 
     public async Task<IActionResult> Eligibility()
     {

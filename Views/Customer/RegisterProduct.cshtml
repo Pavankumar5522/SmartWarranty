@@ -4,8 +4,12 @@
     var brands = ViewBag.Brands as IEnumerable<SmartWarranty_2.Models.Brand> ?? Enumerable.Empty<SmartWarranty_2.Models.Brand>();
     var categories = ViewBag.Categories as IEnumerable<SmartWarranty_2.Models.ProductCategory> ?? Enumerable.Empty<SmartWarranty_2.Models.ProductCategory>();
 }
-<h2>Register Product</h2>
-<form asp-action="RegisterProduct" method="post">
+<div class="page-header">
+    <div><div class="page-eyebrow">Product setup</div><h2>Register product</h2></div>
+    <a asp-action="Products" class="btn btn-outline-secondary">Cancel</a>
+</div>
+<div class="card"><div class="card-body p-4">
+<form asp-action="RegisterProduct" method="post" data-submit-feedback>
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <div class="row g-3">
@@ -63,8 +67,9 @@
             <span asp-validation-for="SellerName" class="text-danger"></span>
         </div>
     </div>
-    <button class="btn btn-primary mt-3" type="submit">Register</button>
+    <button class="btn btn-primary mt-3" type="submit" data-loading-text="Saving product...">Register product</button>
 </form>
+</div></div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

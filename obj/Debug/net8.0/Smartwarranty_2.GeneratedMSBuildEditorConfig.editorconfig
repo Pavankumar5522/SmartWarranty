@@ -12,169 +12,169 @@ build_property.EntryPointFilePath =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = Smartwarranty_2
 build_property.RootNamespace = Smartwarranty_2
-build_property.ProjectDir = D:\Pavan\SmartWarranty(Naresh)\Smartwarranty-main\
+build_property.ProjectDir = D:\Pavan\SmartWarranty(Naresh)\SmartWarranty\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = D:\Pavan\SmartWarranty(Naresh)\Smartwarranty-main
+build_property.MSBuildProjectDirectory = D:\Pavan\SmartWarranty(Naresh)\SmartWarranty
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Account/AccessDenied.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Account/AccessDenied.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxBY2Nlc3NEZW5pZWQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Account/AdminLogin.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Account/AdminLogin.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxBZG1pbkxvZ2luLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Account/CustomerLogin.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Account/CustomerLogin.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxDdXN0b21lckxvZ2luLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Account/CustomerRegister.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Account/CustomerRegister.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxDdXN0b21lclJlZ2lzdGVyLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Admin/Brands.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Admin/Brands.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQnJhbmRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Admin/Categories.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Admin/Categories.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQ2F0ZWdvcmllcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Admin/Customers.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Admin/Customers.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQ3VzdG9tZXJzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Admin/Dashboard.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Admin/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Admin/Products.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Admin/Products.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cUHJvZHVjdHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Admin/Reports.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Admin/Reports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cUmVwb3J0cy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Admin/ServiceRequests.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Admin/ServiceRequests.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cU2VydmljZVJlcXVlc3RzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Admin/Support.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Admin/Support.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cU3VwcG9ydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Admin/Warranties.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Admin/Warranties.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cV2FycmFudGllcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/AddWarranty.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/AddWarranty.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcQWRkV2FycmFudHkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/CreateServiceRequest.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/CreateServiceRequest.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcQ3JlYXRlU2VydmljZVJlcXVlc3QuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/Dashboard.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/Documents.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/Documents.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcRG9jdW1lbnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/Eligibility.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/Eligibility.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcRWxpZ2liaWxpdHkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/ManufacturerSupport.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/ManufacturerSupport.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcTWFudWZhY3R1cmVyU3VwcG9ydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/Notifications.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/Notifications.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcTm90aWZpY2F0aW9ucy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/Products.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/Products.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcUHJvZHVjdHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/Profile.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/Profile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcUHJvZmlsZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/RegisterProduct.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/RegisterProduct.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcUmVnaXN0ZXJQcm9kdWN0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/ReviewInvoice.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/ReviewInvoice.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcUmV2aWV3SW52b2ljZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/ServiceHistory.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/ServiceHistory.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcU2VydmljZUhpc3RvcnkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/ServiceRequests.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/ServiceRequests.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcU2VydmljZVJlcXVlc3RzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/UploadDocument.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/UploadDocument.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcVXBsb2FkRG9jdW1lbnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Customer/Warranties.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Customer/Warranties.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcV2FycmFudGllcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Home/About.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Home/About.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBYm91dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Home/Contact.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Home/Contact.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDb250YWN0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Home/Features.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Home/Features.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxGZWF0dXJlcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Home/HowItWorks.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Home/HowItWorks.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxIb3dJdFdvcmtzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Home/Index.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Home/Privacy.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Shared/Error.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Shared/_ValidationScriptsPartial.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/_ViewImports.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/_ViewStart.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Pavan/SmartWarranty(Naresh)/Smartwarranty-main/Views/Shared/_Layout.cshtml]
+[D:/Pavan/SmartWarranty(Naresh)/SmartWarranty/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-4u7wuc6pfv

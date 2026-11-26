@@ -2,6 +2,18 @@
 @{
     ViewData["Title"] = "Warranty Management";
 }
-<h2>Warranty Management</h2>
-<a class="btn btn-primary mb-3" asp-action="AddWarranty">Add Warranty</a>
-<table class="table table-striped"><thead><tr><th>Product</th><th>Type</th><th>Start Date</th><th>Expiry Date</th><th>Status</th></tr></thead><tbody>@foreach(var warranty in Model){<tr><td>@warranty.Product.Name</td><td>@warranty.WarrantyType</td><td>@warranty.StartDate.ToShortDateString()</td><td>@warranty.ExpiryDate.ToShortDateString()</td><td>@SmartWarranty_2.Services.WarrantyStatusService.GetStatus(warranty)</td></tr>}</tbody></table>
+<div class="page-header">
+    <div><div class="page-eyebrow">Coverage</div><h2>Warranty management</h2></div>
+    <a class="btn btn-primary" asp-action="AddWarranty">+ Add warranty</a>
+</div>
+@if (!Model.Any())
+{
+    <div class="empty-state"><h5>No warranties yet</h5><p class="text-muted">Add a warranty to track its start and expiry dates.</p><a asp-action="AddWarranty" class="btn btn-primary">Add warranty</a></div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle"><thead><tr><th>Product</th><th>Type</th><th>Start date</th><th>Expiry date</th><th>Status</th></tr></thead>
+        <tbody>@foreach(var warranty in Model){var status = SmartWarranty_2.Services.WarrantyStatusService.GetStatus(warranty); var statusClass = status == "Expired" ? "status-expired" : status == "Expiring Soon" ? "status-expiring" : "status-active";<tr><td class="fw-bold">@warranty.Product.Name</td><td>@warranty.WarrantyType</td><td>@warranty.StartDate.ToShortDateString()</td><td>@warranty.ExpiryDate.ToShortDateString()</td><td><span class="status-badge @statusClass">@status</span></td></tr>}</tbody></table>
+    </div>
+}

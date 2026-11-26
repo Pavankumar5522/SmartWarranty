@@ -2,5 +2,39 @@
 @{
     ViewData["Title"] = "Documents";
 }
-<h2>My Documents</h2>
-<table class="table table-striped"><thead><tr><th>Product</th><th>Type</th><th>File</th><th>Action</th></tr></thead><tbody>@foreach(var d in Model){<tr><td>@d.Product.Name</td><td>@d.DocumentType</td><td>@d.FileName</td><td><a class="btn btn-sm btn-outline-primary" asp-action="DownloadDocument" asp-route-id="@d.Id">Download</a> <a class="btn btn-sm btn-outline-danger" asp-action="DeleteDocument" asp-route-id="@d.Id" onclick="return confirm('Delete this document?');">Delete</a></td></tr>}</tbody></table>
+<div class="page-header">
+    <div><div class="page-eyebrow">Your files</div><h2>My documents</h2></div>
+</div>
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <h5>No documents uploaded yet</h5>
+        <p class="text-muted">Upload a purchase invoice or warranty certificate from a product page to keep it handy.</p>
+        <a asp-action="Products" class="btn btn-primary">Go to my products</a>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead><tr><th>Product</th><th>Type</th><th>File</th><th>Actions</th></tr></thead>
+            <tbody>
+                @foreach (var document in Model)
+                {
+                    <tr>
+                        <td class="fw-bold">@document.Product.Name</td>
+                        <td>@document.DocumentType</td>
+                        <td>@document.FileName</td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a class="btn btn-sm btn-outline-primary" asp-action="ViewDocument" asp-route-id="@document.Id" target="_blank" rel="noopener noreferrer">View</a>
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="DownloadDocument" asp-route-id="@document.Id">Download</a>
+                                <a class="btn btn-sm btn-outline-danger" asp-action="DeleteDocument" asp-route-id="@document.Id" onclick="return confirm('Delete this document?');">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

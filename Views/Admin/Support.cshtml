@@ -3,4 +3,4 @@
     ViewData["Title"] = "Support";
 }
 <h2>Manufacturer Support</h2>
-<table class="table table-striped"><thead><tr><th>Brand</th><th>Website</th><th>Claim URL</th><th>Phone</th><th>Email</th></tr></thead><tbody>@foreach(var brand in Model){<tr><td>@brand.Name</td><td><a href="@brand.OfficialWebsiteUrl">Visit</a></td><td><a href="@brand.WarrantyClaimUrl">Claim link</a></td><td>@brand.SupportPhoneNumber</td><td>@brand.SupportEmailAddress</td></tr>}</tbody></table>
+<table class="table table-striped"><thead><tr><th>Brand</th><th>Website</th><th>Claim URL</th><th>Phone</th><th>Email</th></tr></thead><tbody>@foreach(var brand in Model){<tr><td>@brand.Name</td><td><a href="@brand.OfficialWebsiteUrl" target="_blank" rel="noopener noreferrer">Visit</a></td><td><a href="@brand.WarrantyClaimUrl" target="_blank" rel="noopener noreferrer">Claim link</a></td><td>@brand.SupportPhoneNumber</td><td>@brand.SupportEmailAddress</td></tr>}</tbody></table>
