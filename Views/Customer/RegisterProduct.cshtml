@@ -3,15 +3,71 @@
     ViewData["Title"] = "Register Product";
     var brands = ViewBag.Brands as IEnumerable<SmartWarranty_2.Models.Brand> ?? Enumerable.Empty<SmartWarranty_2.Models.Brand>();
     var categories = ViewBag.Categories as IEnumerable<SmartWarranty_2.Models.ProductCategory> ?? Enumerable.Empty<SmartWarranty_2.Models.ProductCategory>();
+    var hasBrands = brands.Any();
+    var hasCategories = categories.Any();
 }
 <div class="page-header">
-    <div><div class="page-eyebrow">Product setup</div><h2>Register product</h2></div>
+    <div><div class="page-eyebrow">Product and coverage</div><h2>Register product &amp; manufacturer warranty</h2></div>
     <a asp-action="Products" class="btn btn-outline-secondary">Cancel</a>
 </div>
+@if (!hasCategories)
+{
+    <div class="alert alert-warning" role="status">
+        Product categories have not been configured yet. Contact support so an administrator can add categories before you register this product.
+    </div>
+}
+@if (Model.InvoiceDraftId.HasValue)
+{
+    var invoiceAlertClass = !Model.InvoiceTextFound || !Model.InvoiceFieldsFound ? "alert-warning" : "alert-info";
+    <div class="alert @invoiceAlertClass" role="status">
+        @if (!Model.InvoiceTextFound)
+        {
+            <strong>No readable text found.</strong> <span>Enter the details manually and check the invoice yourself. The invoice will still be stored with the product.</span>
+        }
+        else if (!Model.InvoiceFieldsFound)
+        {
+            <strong>Text was found, but no product fields matched.</strong> <span>Enter the details manually and check the invoice yourself. The invoice will still be stored with the product.</span>
+        }
+        else
+        {
+            <strong>Invoice read.</strong> <span>Some fields were filled. Review and correct every suggestion before saving. The invoice will be stored with the product.</span>
+        }
+        <div class="small mt-1">Attached invoice: @Model.InvoiceDraftFileName</div>
+    </div>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-body p-4">
+            <h5 class="mb-1">Have a purchase invoice?</h5>
+            <p class="text-muted">Upload a PDF or image to prefill the form. You can also enter the details manually.</p>
+            <form asp-action="ReadRegistrationInvoice" method="post" enctype="multipart/form-data" data-submit-feedback>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-8">
+                        <label for="registrationInvoice" class="form-label">Purchase invoice</label>
+                        <input id="registrationInvoice" name="invoice" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.webp" required />
+                        <div class="form-text">PDF and image files up to 5 MB. Extracted details are suggestions and must be reviewed.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-primary w-100" type="submit" data-loading-text="Reading invoice...">Read invoice &amp; prefill</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+}
 <div class="card"><div class="card-body p-4">
 <form asp-action="RegisterProduct" method="post" data-submit-feedback>
     @Html.AntiForgeryToken()
+    <input asp-for="InvoiceDraftId" type="hidden" />
+    <input asp-for="InvoiceDraftExtension" type="hidden" />
+    <input asp-for="InvoiceDraftFileName" type="hidden" />
+    <input asp-for="InvoiceTextFound" type="hidden" />
+    <input asp-for="InvoiceFieldsFound" type="hidden" />
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <h5 class="mb-3">Product details</h5>
     <div class="row g-3">
         <div class="col-md-6">
             <label asp-for="Name" class="form-label"></label>
@@ -21,7 +77,7 @@
         <div class="col-md-6">
             <label asp-for="BrandId" class="form-label">Existing Brand</label>
             <select asp-for="BrandId" class="form-select">
-                <option value="">Select Brand</option>
+                <option value="">@(hasBrands ? "Select Brand" : "No brands listed - enter one below")</option>
                 @foreach (var brand in brands)
                 {
                     <option value="@brand.Id">@brand.Name</option>
@@ -38,7 +94,7 @@
         <div class="col-md-6">
             <label asp-for="CategoryId" class="form-label"></label>
             <select asp-for="CategoryId" class="form-select">
-                <option value="">Select Category</option>
+                <option value="">@(hasCategories ? "Select Category" : "No categories configured")</option>
                 @foreach (var category in categories)
                 {
                     <option value="@category.Id">@category.Name</option>
@@ -67,7 +123,44 @@
             <span asp-validation-for="SellerName" class="text-danger"></span>
         </div>
     </div>
-    <button class="btn btn-primary mt-3" type="submit" data-loading-text="Saving product...">Register product</button>
+    <hr class="my-4" />
+    <h5 class="mb-2">Manufacturer warranty</h5>
+    <p class="text-muted">Record the manufacturer warranty now, or tell us if you need to confirm its details.</p>
+    @if (Model.InvoiceDraftId.HasValue && Model.WarrantyDurationMonths.HasValue)
+    {
+        <div class="alert alert-warning" role="status">
+            The invoice mentions @Model.WarrantyDurationMonths month(s). Confirm this is the manufacturer warranty before choosing “I have the warranty details”; it will not be recorded as confirmed automatically.
+        </div>
+    }
+    <div class="mb-3">
+        <label asp-for="ManufacturerWarrantyStatus" class="form-label"></label>
+        <select asp-for="ManufacturerWarrantyStatus" class="form-select" data-warranty-status data-confirmed-value="@((int)WarrantyInformationStatus.Confirmed)">
+            <option value="">Choose one</option>
+            <option value="@((int)WarrantyInformationStatus.Confirmed)">I have the warranty details</option>
+            <option value="@((int)WarrantyInformationStatus.NoWarranty)">This product has no manufacturer warranty</option>
+            <option value="@((int)WarrantyInformationStatus.NeedsConfirmation)">I need to confirm the manufacturer warranty details</option>
+        </select>
+        <span asp-validation-for="ManufacturerWarrantyStatus" class="text-danger"></span>
+    </div>
+    <div class="row g-3" data-warranty-fields>
+        <div class="col-md-4">
+            <label asp-for="WarrantyStartDate" class="form-label"></label>
+            <input asp-for="WarrantyStartDate" type="date" class="form-control" />
+            <span asp-validation-for="WarrantyStartDate" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="WarrantyDurationMonths" class="form-label"></label>
+            <input asp-for="WarrantyDurationMonths" class="form-control" min="1" max="240" />
+            <span asp-validation-for="WarrantyDurationMonths" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="WarrantyType" class="form-label"></label>
+            <input asp-for="WarrantyType" class="form-control" placeholder="e.g. Manufacturer standard" />
+            <span asp-validation-for="WarrantyType" class="text-danger"></span>
+        </div>
+        <div class="col-12"><div class="form-text">The expiry date is calculated from the start date and duration. Enter details from your warranty terms; you can choose “I need to confirm” if you are unsure. Extended warranties can be added separately with their invoice.</div></div>
+    </div>
+    <button class="btn btn-primary mt-4" type="submit" data-loading-text="Saving product and warranty..." disabled="@(!hasCategories)">Register product</button>
 </form>
 </div></div>
 

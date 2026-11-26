@@ -1,0 +1,78 @@
+@model SmartWarranty_2.ViewModels.CategoryCsvImportPreviewViewModel
+@{
+    ViewData["Title"] = "Preview category import";
+}
+
+<div class="page-header">
+    <div><div class="page-eyebrow">Catalog management</div><h2>Preview category import</h2></div>
+    <a asp-action="Categories" class="btn btn-outline-secondary">Back to categories</a>
+</div>
+
+@if (Model.Errors.Any())
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Import needs attention:</strong>
+        <ul class="mb-0 mt-2">
+            @foreach (var error in Model.Errors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+else if (Model.CanImport)
+{
+    <div class="alert alert-info" role="status">
+        Review all @Model.Rows.Count row(s). Nothing is saved until you confirm the import.
+    </div>
+}
+
+@if (Model.Rows.Any())
+{
+    <div class="table-responsive mb-3">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>CSV row</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Validation</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Rows)
+                {
+                    <tr class="@(row.Errors.Any() ? "table-danger" : null)">
+                        <td>@row.SourceRowNumber</td>
+                        <td>@row.Name</td>
+                        <td>@row.Description</td>
+                        <td>
+                            @if (row.Errors.Any())
+                            {
+                                <ul class="mb-0">
+                                    @foreach (var error in row.Errors)
+                                    {
+                                        <li>@error</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <span class="text-success">Ready</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<form asp-action="ImportCategories" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="CsvPayload" value="@Model.CsvPayload" />
+    <button class="btn btn-primary" type="submit" disabled="@(!Model.CanImport)">
+        Import @Model.Rows.Count @(Model.Rows.Count == 1 ? "category" : "categories")
+    </button>
+    <a asp-action="Categories" class="btn btn-outline-secondary ms-2">Cancel</a>
+</form>

@@ -12,6 +12,10 @@ public class ProductDocument
     public int ProductId { get; set; }
     public Product Product { get; set; } = null!;
 
+    [ForeignKey(nameof(Warranty))]
+    public int? WarrantyId { get; set; }
+    public Warranty? Warranty { get; set; }
+
     [Required, StringLength(80)]
     public string DocumentType { get; set; } = string.Empty;
 

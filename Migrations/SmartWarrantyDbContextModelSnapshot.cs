@@ -244,6 +244,9 @@ namespace Smartwarranty_2.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
+                    b.Property<int>("ManufacturerWarrantyStatus")
+                        .HasColumnType("int");
+
                     b.Property<string>("ModelNumber")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -355,9 +358,14 @@ namespace Smartwarranty_2.Migrations
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("WarrantyId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("WarrantyId");
 
                     b.ToTable("ProductDocuments");
                 });
@@ -468,6 +476,9 @@ namespace Smartwarranty_2.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CoverageCategory")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -490,7 +501,9 @@ namespace Smartwarranty_2.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("ProductId")
+                        .IsUnique()
+                        .HasFilter("[CoverageCategory] = 0");
 
                     b.ToTable("Warranties");
                 });
@@ -548,7 +561,14 @@ namespace Smartwarranty_2.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SmartWarranty_2.Models.Warranty", "Warranty")
+                        .WithMany("Documents")
+                        .HasForeignKey("WarrantyId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.Navigation("Product");
+
+                    b.Navigation("Warranty");
                 });
 
             modelBuilder.Entity("SmartWarranty_2.Models.ServiceHistory", b =>
@@ -623,6 +643,11 @@ namespace Smartwarranty_2.Migrations
             modelBuilder.Entity("SmartWarranty_2.Models.ServiceRequest", b =>
                 {
                     b.Navigation("Histories");
+                });
+
+            modelBuilder.Entity("SmartWarranty_2.Models.Warranty", b =>
+                {
+                    b.Navigation("Documents");
                 });
 #pragma warning restore 612, 618
         }

@@ -13,7 +13,46 @@
 else
 {
     <div class="table-responsive">
-        <table class="table table-hover align-middle"><thead><tr><th>Product</th><th>Type</th><th>Start date</th><th>Expiry date</th><th>Status</th></tr></thead>
-        <tbody>@foreach(var warranty in Model){var status = SmartWarranty_2.Services.WarrantyStatusService.GetStatus(warranty); var statusClass = status == "Expired" ? "status-expired" : status == "Expiring Soon" ? "status-expiring" : "status-active";<tr><td class="fw-bold">@warranty.Product.Name</td><td>@warranty.WarrantyType</td><td>@warranty.StartDate.ToShortDateString()</td><td>@warranty.ExpiryDate.ToShortDateString()</td><td><span class="status-badge @statusClass">@status</span></td></tr>}</tbody></table>
+        <table class="table table-hover align-middle">
+            <thead><tr><th>Product</th><th>Coverage</th><th>Type</th><th>Start date</th><th>Expiry / time left</th><th>Status</th><th>Proof</th></tr></thead>
+            <tbody>
+                @foreach (var warranty in Model)
+                {
+                    var status = SmartWarranty_2.Services.WarrantyStatusService.GetStatus(warranty);
+                    var statusClass = status == "Expired"
+                        ? "status-expired"
+                        : status == "Expiring Soon"
+                            ? "status-expiring"
+                            : status == "Not Started"
+                                ? "status-pending"
+                                : "status-active";
+                    <tr>
+                        <td class="fw-bold">@warranty.Product.Name</td>
+                        <td>@(warranty.CoverageCategory == SmartWarranty_2.Models.WarrantyCoverageCategory.Extended ? "Extended" : "Manufacturer")</td>
+                        <td>@warranty.WarrantyType</td>
+                        <td>@warranty.StartDate.ToShortDateString()</td>
+                        <td>
+                            <div>@warranty.ExpiryDate.ToShortDateString()</div>
+                            <div class="small text-muted">@SmartWarranty_2.Services.WarrantyStatusService.GetTimeRemainingLabel(warranty)</div>
+                        </td>
+                        <td><span class="status-badge @statusClass">@status</span></td>
+                        <td>
+                            @if (warranty.CoverageCategory == SmartWarranty_2.Models.WarrantyCoverageCategory.Extended)
+                            {
+                                var invoice = warranty.Documents.FirstOrDefault();
+                                if (invoice != null)
+                                {
+                                    <a asp-action="DownloadDocument" asp-route-id="@invoice.Id">Invoice</a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Legacy record</span>
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 }

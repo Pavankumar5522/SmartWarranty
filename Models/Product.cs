@@ -3,6 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartWarranty_2.Models;
 
+public enum WarrantyInformationStatus
+{
+    NeedsConfirmation,
+    Confirmed,
+    NoWarranty
+}
+
 public class Product
 {
     [Key]
@@ -25,6 +32,8 @@ public class Product
 
     [Required, StringLength(120)]
     public string SellerName { get; set; } = string.Empty;
+
+    public WarrantyInformationStatus ManufacturerWarrantyStatus { get; set; } = WarrantyInformationStatus.NeedsConfirmation;
 
     [ForeignKey(nameof(Customer))]
     public int CustomerId { get; set; }

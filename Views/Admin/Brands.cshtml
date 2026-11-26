@@ -37,38 +37,68 @@
     <div><button class="btn btn-primary mt-3" type="submit">Add Company / Brand</button></div>
 </form>
 
-<h4>Company details</h4>
-@foreach (var brand in Model)
-{
-    <form asp-action="UpdateBrand" method="post" class="card card-body mb-3">
+<div class="card card-body mb-4">
+    <h5>Import brands from CSV</h5>
+    <p class="text-muted mb-3">Import up to 2,000 brands at once. Existing brand details are preserved; duplicates or invalid rows must be fixed before anything is imported.</p>
+    <form asp-action="PreviewBrandImport" method="post" enctype="multipart/form-data">
         @Html.AntiForgeryToken()
-        <input type="hidden" name="Id" value="@brand.Id" />
-        <div class="row g-3">
-            <div class="col-md-4">
-                <label for="Name-@brand.Id" class="form-label">Company / brand name</label>
-                <input id="Name-@brand.Id" name="Name" value="@brand.Name" class="form-control" maxlength="120" required />
+        <div class="row g-2 align-items-end">
+            <div class="col-md-8">
+                <label for="brandCsvFile" class="form-label">Brand CSV file (maximum 1 MB)</label>
+                <input id="brandCsvFile" name="csvFile" type="file" class="form-control" accept=".csv,text/csv" required />
             </div>
-            <div class="col-md-4">
-                <label for="Website-@brand.Id" class="form-label">Direct website</label>
-                <input id="Website-@brand.Id" name="OfficialWebsiteUrl" value="@brand.OfficialWebsiteUrl" type="url" class="form-control" />
-            </div>
-            <div class="col-md-4">
-                <label for="Claim-@brand.Id" class="form-label">Warranty application URL</label>
-                <input id="Claim-@brand.Id" name="WarrantyClaimUrl" value="@brand.WarrantyClaimUrl" type="url" class="form-control" />
-            </div>
-            <div class="col-md-6">
-                <label for="Phone-@brand.Id" class="form-label">Support phone</label>
-                <input id="Phone-@brand.Id" name="SupportPhoneNumber" value="@brand.SupportPhoneNumber" type="tel" class="form-control" />
-            </div>
-            <div class="col-md-6">
-                <label for="Email-@brand.Id" class="form-label">Support email</label>
-                <input id="Email-@brand.Id" name="SupportEmailAddress" value="@brand.SupportEmailAddress" type="email" class="form-control" />
-            </div>
-            <div class="col-12">
-                <label for="Description-@brand.Id" class="form-label">Description</label>
-                <input id="Description-@brand.Id" name="Description" value="@brand.Description" class="form-control" maxlength="500" />
+            <div class="col-md-4 d-flex gap-2">
+                <button class="btn btn-outline-primary" type="submit">Preview import</button>
+                <a asp-action="DownloadBrandCsvTemplate" class="btn btn-outline-secondary">CSV template</a>
             </div>
         </div>
-        <div><button class="btn btn-outline-primary mt-3" type="submit">Save company details</button></div>
+        <div class="form-text mt-2">Required column: Name. Optional columns: OfficialWebsiteUrl, WarrantyClaimUrl, SupportPhoneNumber, SupportEmailAddress, Description. Email headers such as "Support Email ID" and "Email" are also accepted; leave email blank if unavailable.</div>
     </form>
+</div>
+
+<h4>Company details</h4>
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No brands are in the catalog yet. Add one above or import a CSV.</div>
+}
+@foreach (var brand in Model)
+{
+    <div class="card card-body mb-3">
+        <form asp-action="UpdateBrand" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@brand.Id" />
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="Name-@brand.Id" class="form-label">Company / brand name</label>
+                    <input id="Name-@brand.Id" name="Name" value="@brand.Name" class="form-control" maxlength="120" required />
+                </div>
+                <div class="col-md-4">
+                    <label for="Website-@brand.Id" class="form-label">Direct website</label>
+                    <input id="Website-@brand.Id" name="OfficialWebsiteUrl" value="@brand.OfficialWebsiteUrl" type="url" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label for="Claim-@brand.Id" class="form-label">Warranty application URL</label>
+                    <input id="Claim-@brand.Id" name="WarrantyClaimUrl" value="@brand.WarrantyClaimUrl" type="url" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label for="Phone-@brand.Id" class="form-label">Support phone</label>
+                    <input id="Phone-@brand.Id" name="SupportPhoneNumber" value="@brand.SupportPhoneNumber" type="tel" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label for="Email-@brand.Id" class="form-label">Support email</label>
+                    <input id="Email-@brand.Id" name="SupportEmailAddress" value="@brand.SupportEmailAddress" type="email" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label for="Description-@brand.Id" class="form-label">Description</label>
+                    <input id="Description-@brand.Id" name="Description" value="@brand.Description" class="form-control" maxlength="500" />
+                </div>
+            </div>
+            <div><button class="btn btn-outline-primary mt-3" type="submit">Save company details</button></div>
+        </form>
+        <form asp-action="DeleteBrand" method="post" class="mt-2" onsubmit="return confirm('Delete this brand? Brands used by registered products cannot be deleted.');">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@brand.Id" />
+            <button class="btn btn-outline-danger" type="submit">Delete brand</button>
+        </form>
+    </div>
 }

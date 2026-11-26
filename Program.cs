@@ -34,7 +34,9 @@ using (var scope = app.Services.CreateScope())
 }
 
 DbInitializer.Initialize(app);
-app.Services.GetRequiredService<DocumentStorageService>().MigrateLegacyFiles();
+var documentStorage = app.Services.GetRequiredService<DocumentStorageService>();
+documentStorage.MigrateLegacyFiles();
+documentStorage.CleanupExpiredRegistrationDrafts(TimeSpan.FromDays(1));
 
 if (!app.Environment.IsDevelopment())
 {

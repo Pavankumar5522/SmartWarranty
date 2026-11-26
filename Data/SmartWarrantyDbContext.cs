@@ -65,6 +65,11 @@ public class SmartWarrantyDbContext : DbContext
             .IsUnique()
             .HasFilter("[WarrantyId] IS NOT NULL");
 
+        modelBuilder.Entity<Warranty>()
+            .HasIndex(w => w.ProductId)
+            .IsUnique()
+            .HasFilter("[CoverageCategory] = 0");
+
         modelBuilder.Entity<Product>()
             .HasOne(p => p.Customer)
             .WithMany(c => c.Products)
@@ -94,6 +99,12 @@ public class SmartWarrantyDbContext : DbContext
             .WithMany(p => p.Documents)
             .HasForeignKey(d => d.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ProductDocument>()
+            .HasOne(d => d.Warranty)
+            .WithMany(w => w.Documents)
+            .HasForeignKey(d => d.WarrantyId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<ServiceRequest>()
             .HasOne(s => s.Customer)

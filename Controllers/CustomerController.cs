@@ -18,17 +18,20 @@ public class CustomerController : Controller
     private readonly DashboardService _dashboardService;
     private readonly IInvoiceRecognitionService _invoiceRecognitionService;
     private readonly DocumentStorageService _documentStorage;
+    private readonly ILogger<CustomerController> _logger;
 
     public CustomerController(
         SmartWarrantyDbContext context,
         DashboardService dashboardService,
         IInvoiceRecognitionService invoiceRecognitionService,
-        DocumentStorageService documentStorage)
+        DocumentStorageService documentStorage,
+        ILogger<CustomerController> logger)
     {
         _context = context;
         _dashboardService = dashboardService;
         _invoiceRecognitionService = invoiceRecognitionService;
         _documentStorage = documentStorage;
+        _logger = logger;
     }
 
     private int CurrentCustomerId => int.Parse(User.FindFirstValue("UserId") ?? "0");
@@ -39,7 +42,12 @@ public class CustomerController : Controller
         if (customer == null) return RedirectToAction("Logout", "Account");
 
         var metrics = await _dashboardService.GetCustomerDashboardMetricsAsync(CurrentCustomerId);
-        var recentProducts = await _context.Products.Where(p => p.CustomerId == CurrentCustomerId).OrderByDescending(p => p.CreatedAt).Take(5).ToListAsync();
+        var recentProducts = await _context.Products
+            .Include(p => p.Warranties)
+            .Where(p => p.CustomerId == CurrentCustomerId)
+            .OrderByDescending(p => p.CreatedAt)
+            .Take(5)
+            .ToListAsync();
         var warrantyItems = await _context.Warranties.Include(w => w.Product).Where(w => w.Product.CustomerId == CurrentCustomerId).OrderBy(w => w.ExpiryDate).Take(5).ToListAsync();
         var recentRequests = await _context.ServiceRequests.Where(s => s.CustomerId == CurrentCustomerId).OrderByDescending(s => s.RequestDate).Take(5).ToListAsync();
 
@@ -80,6 +88,7 @@ public class CustomerController : Controller
         var products = await _context.Products
             .Include(p => p.Brand)
             .Include(p => p.Category)
+            .Include(p => p.Warranties)
             .Where(p => p.CustomerId == CurrentCustomerId)
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
@@ -142,10 +151,175 @@ public class CustomerController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ReadRegistrationInvoice(IFormFile invoice)
+    {
+        ViewBag.Brands = await _context.Brands.OrderBy(b => b.Name).ToListAsync();
+        ViewBag.Categories = await _context.ProductCategories.OrderBy(c => c.Name).ToListAsync();
+
+        var model = new ProductRegistrationViewModel();
+        if (invoice == null || invoice.Length == 0)
+        {
+            ModelState.AddModelError(string.Empty, "Choose an invoice file to read.");
+            return View("RegisterProduct", model);
+        }
+
+        var extension = Path.GetExtension(invoice.FileName).ToLowerInvariant();
+        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".webp" };
+        if (!allowedExtensions.Contains(extension))
+        {
+            ModelState.AddModelError(string.Empty, "Choose a PDF or supported image file.");
+            return View("RegisterProduct", model);
+        }
+
+        if (invoice.Length > 5 * 1024 * 1024)
+        {
+            ModelState.AddModelError(string.Empty, "Invoice file size must be less than 5 MB.");
+            return View("RegisterProduct", model);
+        }
+
+        var fileName = Path.GetFileName(invoice.FileName);
+        if (fileName.Length > 200)
+        {
+            ModelState.AddModelError(string.Empty, "Invoice filename must be 200 characters or fewer.");
+            return View("RegisterProduct", model);
+        }
+
+        InvoiceRecognitionResult recognition;
+        try
+        {
+            await using var stream = invoice.OpenReadStream();
+            recognition = await _invoiceRecognitionService.RecognizeAsync(stream, extension);
+        }
+        catch (Exception exception) when (
+            exception is ArgumentException
+            or IOException
+            or InvalidOperationException
+            or NotSupportedException)
+        {
+            _logger.LogWarning(exception, "Invoice recognition failed for customer {CustomerId}.", CurrentCustomerId);
+            ModelState.AddModelError(string.Empty, "We couldn't read this invoice. Try another PDF/image or enter the details manually.");
+            return View("RegisterProduct", model);
+        }
+
+        var draftId = Guid.NewGuid();
+        var draftPath = _documentStorage.GetRegistrationDraftFilePath(CurrentCustomerId, draftId, extension);
+        Directory.CreateDirectory(Path.GetDirectoryName(draftPath)!);
+        var draftSaved = false;
+        try
+        {
+            await using var destination = new FileStream(draftPath, FileMode.CreateNew);
+            await invoice.CopyToAsync(destination);
+            draftSaved = true;
+        }
+        finally
+        {
+            if (!draftSaved && System.IO.File.Exists(draftPath))
+            {
+                System.IO.File.Delete(draftPath);
+            }
+        }
+
+        var matchedBrand = string.IsNullOrWhiteSpace(recognition.BrandName)
+            ? null
+            : ((IEnumerable<Brand>)ViewBag.Brands).FirstOrDefault(brand =>
+                string.Equals(brand.Name, recognition.BrandName.Trim(), StringComparison.OrdinalIgnoreCase));
+        var matchedCategory = string.IsNullOrWhiteSpace(recognition.CategoryName)
+            ? null
+            : ((IEnumerable<ProductCategory>)ViewBag.Categories).FirstOrDefault(category =>
+                string.Equals(category.Name, recognition.CategoryName.Trim(), StringComparison.OrdinalIgnoreCase));
+        model.Name = recognition.ProductName ?? string.Empty;
+        model.BrandId = matchedBrand?.Id;
+        model.BrandName = matchedBrand == null ? recognition.BrandName : null;
+        model.CategoryId = matchedCategory?.Id ?? 0;
+        model.ModelNumber = recognition.ModelNumber ?? string.Empty;
+        model.SerialNumber = recognition.SerialNumber ?? string.Empty;
+        model.PurchaseDate = recognition.PurchaseDate ?? DateTime.UtcNow.Date;
+        model.SellerName = recognition.SellerName ?? string.Empty;
+        model.ManufacturerWarrantyStatus = WarrantyInformationStatus.NeedsConfirmation;
+        model.WarrantyStartDate = recognition.PurchaseDate;
+        model.WarrantyDurationMonths = recognition.WarrantyDurationMonths;
+        model.InvoiceDraftId = draftId;
+        model.InvoiceDraftExtension = extension;
+        model.InvoiceDraftFileName = fileName;
+        model.InvoiceTextFound = recognition.HasRecognizedText;
+        model.InvoiceFieldsFound = recognition.HasRecognizedFields;
+
+        return View("RegisterProduct", model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> RegisterProduct(ProductRegistrationViewModel model)
     {
         ViewBag.Brands = await _context.Brands.OrderBy(b => b.Name).ToListAsync();
         ViewBag.Categories = await _context.ProductCategories.OrderBy(c => c.Name).ToListAsync();
+        string? invoiceDraftPath = null;
+        var invoiceFileName = string.Empty;
+        var invoiceExtension = string.Empty;
+
+        if (model.InvoiceDraftId.HasValue)
+        {
+            invoiceExtension = model.InvoiceDraftExtension?.ToLowerInvariant() ?? string.Empty;
+            var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".webp" };
+            invoiceFileName = Path.GetFileName(model.InvoiceDraftFileName ?? string.Empty);
+            if (model.InvoiceDraftId.Value == Guid.Empty
+                || !allowedExtensions.Contains(invoiceExtension)
+                || string.IsNullOrWhiteSpace(invoiceFileName)
+                || invoiceFileName.Length > 200)
+            {
+                ModelState.AddModelError(string.Empty, "The invoice draft is invalid. Upload the invoice again.");
+            }
+            else
+            {
+                invoiceDraftPath = _documentStorage.GetRegistrationDraftFilePath(
+                    CurrentCustomerId,
+                    model.InvoiceDraftId.Value,
+                    invoiceExtension);
+                if (!System.IO.File.Exists(invoiceDraftPath))
+                {
+                    ModelState.AddModelError(string.Empty, "The invoice draft has expired. Upload the invoice again.");
+                }
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(model.InvoiceDraftExtension)
+            || !string.IsNullOrWhiteSpace(model.InvoiceDraftFileName))
+        {
+            ModelState.AddModelError(string.Empty, "The invoice draft is invalid. Upload the invoice again.");
+        }
+
+        if (model.ManufacturerWarrantyStatus.HasValue
+            && !Enum.IsDefined(typeof(WarrantyInformationStatus), model.ManufacturerWarrantyStatus.Value))
+        {
+            ModelState.AddModelError(nameof(model.ManufacturerWarrantyStatus), "Choose a valid manufacturer warranty situation.");
+        }
+
+        if (model.ManufacturerWarrantyStatus == WarrantyInformationStatus.Confirmed)
+        {
+            if (!model.WarrantyStartDate.HasValue)
+            {
+                ModelState.AddModelError(nameof(model.WarrantyStartDate), "Enter the warranty start date.");
+            }
+            else if (model.WarrantyStartDate.Value.Date > DateTime.UtcNow.Date)
+            {
+                ModelState.AddModelError(nameof(model.WarrantyStartDate), "Warranty start date cannot be in the future.");
+            }
+
+            if (!model.WarrantyDurationMonths.HasValue)
+            {
+                ModelState.AddModelError(nameof(model.WarrantyDurationMonths), "Enter the warranty duration.");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.WarrantyType))
+            {
+                ModelState.AddModelError(nameof(model.WarrantyType), "Enter the warranty type.");
+            }
+        }
+        else
+        {
+            ModelState.Remove(nameof(model.WarrantyStartDate));
+            ModelState.Remove(nameof(model.WarrantyDurationMonths));
+            ModelState.Remove(nameof(model.WarrantyType));
+        }
 
         var existingBrand = model.BrandId.HasValue
             ? await _context.Brands.FindAsync(model.BrandId.Value)
@@ -211,13 +385,91 @@ public class CustomerController : Controller
             SerialNumber = serialNumber,
             PurchaseDate = model.PurchaseDate,
             SellerName = model.SellerName.Trim(),
+            ManufacturerWarrantyStatus = model.ManufacturerWarrantyStatus!.Value,
             CustomerId = CurrentCustomerId,
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.Products.Add(product);
-        await _context.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Product registered successfully.";
+        if (model.ManufacturerWarrantyStatus == WarrantyInformationStatus.Confirmed)
+        {
+            var warrantyStartDate = model.WarrantyStartDate!.Value.Date;
+            product.Warranties.Add(new Warranty
+            {
+                CoverageCategory = WarrantyCoverageCategory.Manufacturer,
+                StartDate = warrantyStartDate,
+                DurationMonths = model.WarrantyDurationMonths!.Value,
+                ExpiryDate = warrantyStartDate.AddMonths(model.WarrantyDurationMonths.Value),
+                WarrantyType = model.WarrantyType!.Trim(),
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        Warranty? manufacturerWarranty = null;
+        if (model.ManufacturerWarrantyStatus == WarrantyInformationStatus.Confirmed)
+        {
+            manufacturerWarranty = product.Warranties.Single();
+        }
+
+        string? storedInvoicePath = null;
+        var registrationSaved = false;
+        try
+        {
+            if (invoiceDraftPath != null && model.InvoiceDraftId.HasValue)
+            {
+                Directory.CreateDirectory(_documentStorage.StoragePath);
+                var storedFileName = Guid.NewGuid() + invoiceExtension;
+                storedInvoicePath = _documentStorage.GetFilePath(storedFileName);
+                System.IO.File.Copy(invoiceDraftPath, storedInvoicePath);
+                var invoiceSize = new FileInfo(storedInvoicePath).Length;
+
+                _context.ProductDocuments.Add(new ProductDocument
+                {
+                    Product = product,
+                    Warranty = manufacturerWarranty,
+                    DocumentType = "Purchase Invoice",
+                    FileName = invoiceFileName,
+                    StoredFileName = storedFileName,
+                    ContentType = GetDocumentContentType(storedFileName),
+                    FileSize = invoiceSize,
+                    UploadedAt = DateTime.UtcNow
+                });
+            }
+
+            _context.Products.Add(product);
+            await _context.SaveChangesAsync();
+            registrationSaved = true;
+        }
+        finally
+        {
+            if (!registrationSaved && storedInvoicePath != null && System.IO.File.Exists(storedInvoicePath))
+            {
+                System.IO.File.Delete(storedInvoicePath);
+            }
+        }
+
+        if (registrationSaved && model.InvoiceDraftId.HasValue)
+        {
+            try
+            {
+                _documentStorage.DeleteRegistrationDraft(CurrentCustomerId, model.InvoiceDraftId.Value);
+            }
+            catch (IOException exception)
+            {
+                _logger.LogWarning(exception, "Could not remove a completed invoice draft for customer {CustomerId}.", CurrentCustomerId);
+            }
+        }
+
+        TempData["SuccessMessage"] = model.ManufacturerWarrantyStatus == WarrantyInformationStatus.Confirmed
+            ? invoiceDraftPath == null
+                ? "Product and manufacturer warranty registered successfully."
+                : "Product and manufacturer warranty registered. The invoice is saved in your documents."
+            : model.ManufacturerWarrantyStatus == WarrantyInformationStatus.NoWarranty
+                ? invoiceDraftPath == null
+                    ? "Product registered. No manufacturer warranty was recorded."
+                    : "Product registered with no manufacturer warranty. The invoice is saved in your documents."
+                : invoiceDraftPath == null
+                    ? "Product registered. You can add the manufacturer warranty details later."
+                    : "Product registered. You can add the manufacturer warranty details later; the invoice is saved in your documents.";
         return RedirectToAction(nameof(Products));
     }
 
@@ -226,6 +478,7 @@ public class CustomerController : Controller
         var warranties = await _context.Warranties
             .Include(w => w.Product)
             .ThenInclude(p => p.Brand)
+            .Include(w => w.Documents)
             .Where(w => w.Product.CustomerId == CurrentCustomerId)
             .OrderByDescending(w => w.ExpiryDate)
             .ToListAsync();
@@ -238,28 +491,92 @@ public class CustomerController : Controller
         return View(warranties);
     }
 
-    public async Task<IActionResult> AddWarranty(int? productId = null)
+    public async Task<IActionResult> AddWarranty(int? productId = null, WarrantyCoverageCategory? coverageCategory = null)
     {
-        var products = await _context.Products.Where(p => p.CustomerId == CurrentCustomerId).ToListAsync();
+        var products = await _context.Products
+            .Include(p => p.Warranties)
+            .Where(p => p.CustomerId == CurrentCustomerId)
+            .OrderBy(p => p.Name)
+            .ToListAsync();
         ViewBag.Products = products;
-        return View(new WarrantyRegistrationViewModel { ProductId = productId ?? products.FirstOrDefault()?.Id ?? 0 });
+        var selectedProductId = productId.HasValue && products.Any(p => p.Id == productId.Value)
+            ? productId.Value
+            : products.FirstOrDefault()?.Id ?? 0;
+        var selectedCategory = coverageCategory.HasValue
+            && Enum.IsDefined(typeof(WarrantyCoverageCategory), coverageCategory.Value)
+                ? coverageCategory
+                : WarrantyCoverageCategory.Manufacturer;
+        return View(new WarrantyRegistrationViewModel
+        {
+            ProductId = selectedProductId,
+            CoverageCategory = selectedCategory
+        });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddWarranty(WarrantyRegistrationViewModel model)
     {
-        var products = await _context.Products.Where(p => p.CustomerId == CurrentCustomerId).ToListAsync();
+        var products = await _context.Products
+            .Include(p => p.Warranties)
+            .Where(p => p.CustomerId == CurrentCustomerId)
+            .OrderBy(p => p.Name)
+            .ToListAsync();
         ViewBag.Products = products;
 
-        if (!products.Any(p => p.Id == model.ProductId))
+        var product = products.FirstOrDefault(p => p.Id == model.ProductId);
+        if (product == null)
         {
             ModelState.AddModelError(nameof(model.ProductId), "Select one of your registered products.");
+        }
+
+        if (model.CoverageCategory.HasValue
+            && !Enum.IsDefined(typeof(WarrantyCoverageCategory), model.CoverageCategory.Value))
+        {
+            ModelState.AddModelError(nameof(model.CoverageCategory), "Choose a valid coverage category.");
+        }
+
+        if (model.CoverageCategory == WarrantyCoverageCategory.Manufacturer
+            && product?.Warranties.Any(w => w.CoverageCategory == WarrantyCoverageCategory.Manufacturer) == true)
+        {
+            ModelState.AddModelError(nameof(model.CoverageCategory), "This product already has a manufacturer warranty. Add extended coverage instead.");
         }
 
         if (model.StartDate.Date > DateTime.UtcNow.Date)
         {
             ModelState.AddModelError(nameof(model.StartDate), "Warranty start date cannot be in the future.");
+        }
+
+        IFormFile? invoice = null;
+        string? invoiceExtension = null;
+        string? invoiceFileName = null;
+        if (model.CoverageCategory == WarrantyCoverageCategory.Extended)
+        {
+            invoice = model.ExtendedWarrantyInvoice;
+            if (invoice == null || invoice.Length == 0)
+            {
+                ModelState.AddModelError(nameof(model.ExtendedWarrantyInvoice), "Upload the invoice for this extended warranty.");
+            }
+            else
+            {
+                invoiceExtension = Path.GetExtension(invoice.FileName).ToLowerInvariant();
+                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".webp" };
+                if (!allowedExtensions.Contains(invoiceExtension))
+                {
+                    ModelState.AddModelError(nameof(model.ExtendedWarrantyInvoice), "Invoice must be a PDF or supported image file.");
+                }
+
+                if (invoice.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError(nameof(model.ExtendedWarrantyInvoice), "Invoice file size must be less than 5 MB.");
+                }
+
+                invoiceFileName = Path.GetFileName(invoice.FileName);
+                if (invoiceFileName.Length > 200)
+                {
+                    ModelState.AddModelError(nameof(model.ExtendedWarrantyInvoice), "Invoice filename must be 200 characters or fewer.");
+                }
+            }
         }
 
         if (!ModelState.IsValid)
@@ -270,17 +587,62 @@ public class CustomerController : Controller
         var expiryDate = model.StartDate.Date.AddMonths(model.DurationMonths);
         var warranty = new Warranty
         {
-            ProductId = model.ProductId,
+            Product = product!,
+            CoverageCategory = model.CoverageCategory!.Value,
             StartDate = model.StartDate.Date,
             DurationMonths = model.DurationMonths,
             ExpiryDate = expiryDate,
-            WarrantyType = model.WarrantyType,
+            WarrantyType = model.WarrantyType.Trim(),
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.Warranties.Add(warranty);
-        await _context.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Warranty added successfully.";
+        string? invoicePath = null;
+        var saveSucceeded = false;
+        try
+        {
+            if (invoice != null && invoiceExtension != null && invoiceFileName != null)
+            {
+                Directory.CreateDirectory(_documentStorage.StoragePath);
+                var storedFileName = Guid.NewGuid() + invoiceExtension;
+                invoicePath = _documentStorage.GetFilePath(storedFileName);
+                await using (var stream = new FileStream(invoicePath, FileMode.CreateNew))
+                {
+                    await invoice.CopyToAsync(stream);
+                }
+
+                _context.ProductDocuments.Add(new ProductDocument
+                {
+                    Product = product!,
+                    Warranty = warranty,
+                    DocumentType = "Extended Warranty Invoice",
+                    FileName = invoiceFileName,
+                    StoredFileName = storedFileName,
+                    ContentType = GetDocumentContentType(storedFileName),
+                    FileSize = invoice.Length,
+                    UploadedAt = DateTime.UtcNow
+                });
+            }
+
+            if (warranty.CoverageCategory == WarrantyCoverageCategory.Manufacturer)
+            {
+                product!.ManufacturerWarrantyStatus = WarrantyInformationStatus.Confirmed;
+            }
+
+            _context.Warranties.Add(warranty);
+            await _context.SaveChangesAsync();
+            saveSucceeded = true;
+        }
+        finally
+        {
+            if (!saveSucceeded && invoicePath != null && System.IO.File.Exists(invoicePath))
+            {
+                System.IO.File.Delete(invoicePath);
+            }
+        }
+
+        TempData["SuccessMessage"] = warranty.CoverageCategory == WarrantyCoverageCategory.Extended
+            ? "Extended warranty and its invoice were saved."
+            : "Manufacturer warranty added successfully.";
         return RedirectToAction(nameof(Warranties));
     }
 
@@ -418,6 +780,16 @@ public class CustomerController : Controller
             ModelState.AddModelError(nameof(model.SerialNumber), "A product with this serial number is already registered.");
         }
 
+        var manufacturerWarrantyExists = await _context.Warranties.AnyAsync(w =>
+            w.ProductId == product.Id
+            && w.CoverageCategory == WarrantyCoverageCategory.Manufacturer);
+        if (model.WarrantyDurationMonths.HasValue && manufacturerWarrantyExists)
+        {
+            ModelState.AddModelError(
+                nameof(model.WarrantyDurationMonths),
+                "A manufacturer warranty is already recorded. Use Add extended warranty for additional coverage.");
+        }
+
         if (model.WarrantyDurationMonths.HasValue)
         {
             var warrantyStartDate = model.WarrantyStartDate?.Date ?? model.PurchaseDate.Date;
@@ -446,9 +818,11 @@ public class CustomerController : Controller
         if (model.WarrantyDurationMonths.HasValue)
         {
             var startDate = model.WarrantyStartDate?.Date ?? model.PurchaseDate.Date;
+            product.ManufacturerWarrantyStatus = WarrantyInformationStatus.Confirmed;
             _context.Warranties.Add(new Warranty
             {
                 ProductId = product.Id,
+                CoverageCategory = WarrantyCoverageCategory.Manufacturer,
                 StartDate = startDate,
                 DurationMonths = model.WarrantyDurationMonths.Value,
                 ExpiryDate = startDate.AddMonths(model.WarrantyDurationMonths.Value),

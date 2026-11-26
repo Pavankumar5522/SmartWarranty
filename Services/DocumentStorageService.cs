@@ -1,10 +1,12 @@
 using System.Security.Cryptography;
+using System.Globalization;
 using Microsoft.AspNetCore.Hosting;
 
 namespace SmartWarranty_2.Services;
 
 public sealed class DocumentStorageService
 {
+    private static readonly string[] SupportedExtensions = { ".pdf", ".jpg", ".jpeg", ".png", ".webp" };
     private readonly string _privateStoragePath;
     private readonly string _legacyStoragePath;
 
@@ -29,6 +31,61 @@ public sealed class DocumentStorageService
         }
 
         return Path.Combine(_privateStoragePath, storedFileName);
+    }
+
+    public string GetRegistrationDraftFilePath(int customerId, Guid draftId, string extension)
+    {
+        if (customerId <= 0 || draftId == Guid.Empty)
+        {
+            throw new ArgumentException("A valid customer and draft identifier are required.");
+        }
+
+        var normalizedExtension = extension.ToLowerInvariant();
+        if (!SupportedExtensions.Contains(normalizedExtension, StringComparer.Ordinal))
+        {
+            throw new ArgumentException("The invoice file type is not supported.", nameof(extension));
+        }
+
+        var customerDraftPath = Path.Combine(
+            _privateStoragePath,
+            "pending",
+            customerId.ToString(CultureInfo.InvariantCulture));
+        return Path.Combine(customerDraftPath, draftId.ToString("N") + normalizedExtension);
+    }
+
+    public void DeleteRegistrationDraft(int customerId, Guid draftId)
+    {
+        if (customerId <= 0 || draftId == Guid.Empty)
+        {
+            return;
+        }
+
+        foreach (var extension in SupportedExtensions)
+        {
+            var path = GetRegistrationDraftFilePath(customerId, draftId, extension);
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    public void CleanupExpiredRegistrationDrafts(TimeSpan lifetime)
+    {
+        var pendingPath = Path.Combine(_privateStoragePath, "pending");
+        if (!Directory.Exists(pendingPath))
+        {
+            return;
+        }
+
+        var expiration = DateTime.UtcNow - lifetime;
+        foreach (var draftPath in Directory.EnumerateFiles(pendingPath, "*", SearchOption.AllDirectories))
+        {
+            if (File.GetLastWriteTimeUtc(draftPath) < expiration)
+            {
+                File.Delete(draftPath);
+            }
+        }
     }
 
     public void MigrateLegacyFiles()

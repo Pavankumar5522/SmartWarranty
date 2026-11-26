@@ -54,7 +54,14 @@
                                     <div class="fw-bold">@product.Name</div>
                                     <div class="small text-muted">@product.ModelNumber</div>
                                 </div>
-                                <a asp-action="AddWarranty" asp-route-productId="@product.Id" class="btn btn-sm btn-outline-primary">Warranty</a>
+                                @if (product.Warranties.Any(w => w.CoverageCategory == SmartWarranty_2.Models.WarrantyCoverageCategory.Manufacturer))
+                                {
+                                    <a asp-action="AddWarranty" asp-route-productId="@product.Id" asp-route-coverageCategory="@SmartWarranty_2.Models.WarrantyCoverageCategory.Extended" class="btn btn-sm btn-outline-primary">Add extended</a>
+                                }
+                                else
+                                {
+                                    <a asp-action="AddWarranty" asp-route-productId="@product.Id" asp-route-coverageCategory="@SmartWarranty_2.Models.WarrantyCoverageCategory.Manufacturer" class="btn btn-sm btn-outline-primary">Add manufacturer</a>
+                                }
                             </li>
                         }
                     </ul>
@@ -86,6 +93,7 @@
                                 <div>
                                     <div class="fw-bold">@warranty.Product.Name</div>
                                     <div class="small text-muted">Expires @warranty.ExpiryDate.ToShortDateString()</div>
+                                    <div class="small text-muted">@SmartWarranty_2.Services.WarrantyStatusService.GetTimeRemainingLabel(warranty)</div>
                                 </div>
                                 <span class="status-badge status-expiring">@SmartWarranty_2.Services.WarrantyStatusService.GetStatus(warranty)</span>
                             </li>

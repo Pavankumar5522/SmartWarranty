@@ -1,0 +1,95 @@
+@model SmartWarranty_2.ViewModels.BrandCsvImportPreviewViewModel
+@{
+    ViewData["Title"] = "Preview brand import";
+}
+
+<div class="page-header">
+    <div><div class="page-eyebrow">Catalog management</div><h2>Preview brand import</h2></div>
+    <a asp-action="Brands" class="btn btn-outline-secondary">Back to brands</a>
+</div>
+
+@if (Model.Errors.Any())
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Import needs attention:</strong>
+        <ul class="mb-0 mt-2">
+            @foreach (var error in Model.Errors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+else if (Model.Rows.Any())
+{
+    @if (Model.CanImport)
+    {
+        <div class="alert alert-info" role="status">
+            @Model.ImportableRowCount row(s) are ready to import. @Model.SkippedRowCount invalid row(s) will be skipped when you confirm.
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning" role="alert">
+            No rows are ready to import. Fix the validation issues and upload the CSV again.
+        </div>
+    }
+}
+
+@if (Model.Rows.Any())
+{
+    <div class="table-responsive mb-3">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>CSV row</th>
+                    <th>Brand</th>
+                    <th>Website</th>
+                    <th>Warranty URL</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Description</th>
+                    <th>Validation</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Rows)
+                {
+                    <tr class="@(row.Errors.Any() ? "table-danger" : null)">
+                        <td>@row.SourceRowNumber</td>
+                        <td>@row.Name</td>
+                        <td>@row.OfficialWebsiteUrl</td>
+                        <td>@row.WarrantyClaimUrl</td>
+                        <td>@row.SupportPhoneNumber</td>
+                        <td>@row.SupportEmailAddress</td>
+                        <td>@row.Description</td>
+                        <td>
+                            @if (row.Errors.Any())
+                            {
+                                <ul class="mb-0">
+                                    @foreach (var error in row.Errors)
+                                    {
+                                        <li>@error</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <span class="text-success">Ready</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<form asp-action="ImportBrands" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="CsvPayload" value="@Model.CsvPayload" />
+    <button class="btn btn-primary" type="submit" disabled="@(!Model.CanImport)">
+        Import @Model.ImportableRowCount ready brand(s)
+    </button>
+    <a asp-action="Brands" class="btn btn-outline-secondary ms-2">Cancel</a>
+</form>

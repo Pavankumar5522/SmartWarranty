@@ -13,7 +13,7 @@ else
     <div class="table-responsive">
         <table class="table table-striped align-middle">
             <thead>
-                <tr><th>Name</th><th>Brand</th><th>Category</th><th>Model</th><th>Serial</th><th>Manufacturer</th><th>Actions</th></tr>
+                <tr><th>Name</th><th>Brand</th><th>Category</th><th>Model</th><th>Serial</th><th>Warranty information</th><th>Manufacturer</th><th>Actions</th></tr>
             </thead>
             <tbody>
                 @foreach (var product in Model)
@@ -24,6 +24,20 @@ else
                         <td>@product.Category.Name</td>
                         <td>@product.ModelNumber</td>
                         <td>@product.SerialNumber</td>
+                        <td>
+                            @if (product.ManufacturerWarrantyStatus == SmartWarranty_2.Models.WarrantyInformationStatus.Confirmed)
+                            {
+                                <span class="status-badge status-active">Manufacturer recorded</span>
+                            }
+                            else if (product.ManufacturerWarrantyStatus == SmartWarranty_2.Models.WarrantyInformationStatus.NoWarranty)
+                            {
+                                <span class="status-badge status-expired">No manufacturer warranty</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge status-pending">Manufacturer needs confirmation</span>
+                            }
+                        </td>
                         <td>
                             @if (Uri.TryCreate(product.Brand.WarrantyClaimUrl, UriKind.Absolute, out var claimUrl)
                                 && (claimUrl.Scheme == Uri.UriSchemeHttps || claimUrl.Scheme == Uri.UriSchemeHttp))
@@ -38,7 +52,11 @@ else
                         </td>
                         <td>
                             <div class="d-flex flex-wrap gap-1">
-                                <a class="btn btn-sm btn-outline-primary" asp-action="AddWarranty" asp-route-productId="@product.Id">Add Warranty</a>
+                                @if (!product.Warranties.Any(w => w.CoverageCategory == SmartWarranty_2.Models.WarrantyCoverageCategory.Manufacturer))
+                                {
+                                    <a class="btn btn-sm btn-outline-primary" asp-action="AddWarranty" asp-route-productId="@product.Id" asp-route-coverageCategory="@SmartWarranty_2.Models.WarrantyCoverageCategory.Manufacturer">Add manufacturer warranty</a>
+                                }
+                                <a class="btn btn-sm btn-outline-primary" asp-action="AddWarranty" asp-route-productId="@product.Id" asp-route-coverageCategory="@SmartWarranty_2.Models.WarrantyCoverageCategory.Extended">Add extended warranty</a>
                                 <a class="btn btn-sm btn-outline-secondary" asp-action="UploadDocument" asp-route-productId="@product.Id">Upload Document</a>
                                 <a class="btn btn-sm btn-outline-secondary" asp-action="CreateServiceRequest" asp-route-productId="@product.Id">Request Service</a>
                                 <form asp-action="DeleteProduct" method="post" onsubmit="return confirm('Delete this product and its warranties and documents? Products with service request history cannot be deleted.');">

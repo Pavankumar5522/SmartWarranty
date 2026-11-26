@@ -13,12 +13,15 @@ namespace SmartWarranty_2.Services;
 
 public sealed record InvoiceRecognitionResult(
     string? ProductName,
+    string? BrandName,
+    string? CategoryName,
     string? ModelNumber,
     string? SerialNumber,
     DateTime? PurchaseDate,
     string? SellerName,
     int? WarrantyDurationMonths,
-    bool HasRecognizedText);
+    bool HasRecognizedText,
+    bool HasRecognizedFields);
 
 public interface IInvoiceRecognitionService
 {
@@ -30,6 +33,7 @@ public sealed class InvoiceRecognitionService : IInvoiceRecognitionService
     private static readonly string[] DateFormats =
     {
         "M/d/yyyy", "MM/dd/yyyy", "d/M/yyyy", "dd/MM/yyyy",
+        "M-d-yyyy", "MM-dd-yyyy", "d-M-yyyy", "dd-MM-yyyy", "d-MMM-yyyy", "dd-MMM-yyyy",
         "yyyy-MM-dd", "MMM d, yyyy", "MMMM d, yyyy"
     };
 
@@ -44,7 +48,7 @@ public sealed class InvoiceRecognitionService : IInvoiceRecognitionService
             using (var pdfTextStream = new MemoryStream(pdfBytes))
             using (var document = PdfDocument.Open(pdfTextStream))
             {
-                text = string.Join(Environment.NewLine, document.GetPages().Select(page => page.Text));
+                text = string.Join(Environment.NewLine, document.GetPages().SelectMany(ExtractLines));
             }
 
             if (string.IsNullOrWhiteSpace(text))
@@ -62,14 +66,157 @@ public sealed class InvoiceRecognitionService : IInvoiceRecognitionService
             text = page.GetText() ?? string.Empty;
         }
 
+        var productName = ExtractLabeledValue(text, @"(?:product|item)(?:\s+name)?|description");
+        var brandName = ExtractLabeledValue(text, @"brand(?:\s*/\s*manufacturer)?|manufacturer");
+        var categoryName = ExtractLabeledValue(text, @"category|product\s+category");
+        var modelNumber = ExtractLabeledValue(text, @"model(?:\s*(?:no\.?|number))?|sku");
+        var serialNumber = ExtractLabeledValue(text, @"serial(?:\s*(?:no\.?|number))?");
+        var purchaseDate = ExtractDate(text);
+        var sellerName = ExtractLabeledValue(text, @"seller\s+name|seller|sold\s+by|merchant|vendor|store");
+        var warrantyDurationMonths = ExtractWarrantyDuration(text);
+        var hasRecognizedFields = new[]
+        {
+            productName, brandName, categoryName, modelNumber, serialNumber, sellerName
+        }.Any(value => !string.IsNullOrWhiteSpace(value))
+            || purchaseDate.HasValue
+            || warrantyDurationMonths.HasValue;
+
         return new InvoiceRecognitionResult(
-            ExtractLabeledValue(text, @"(?:product|item)(?:\s+name)?|description"),
-            ExtractLabeledValue(text, @"model(?:\s*(?:no\.?|number))?|sku"),
-            ExtractLabeledValue(text, @"serial(?:\s*(?:no\.?|number))?"),
-            ExtractDate(text),
-            ExtractLabeledValue(text, @"seller|sold\s+by|merchant|vendor|store"),
-            ExtractWarrantyDuration(text),
-            !string.IsNullOrWhiteSpace(text));
+            productName,
+            brandName,
+            categoryName,
+            modelNumber,
+            serialNumber,
+            purchaseDate,
+            sellerName,
+            warrantyDurationMonths,
+            !string.IsNullOrWhiteSpace(text),
+            hasRecognizedFields);
+    }
+
+    private static IEnumerable<string> ExtractLines(UglyToad.PdfPig.Content.Page page)
+    {
+        var rows = new List<(double Baseline, List<(string Text, double Left, double Right)> Words)>();
+        foreach (var word in page.GetWords().OrderByDescending(word => word.BoundingBox.Bottom))
+        {
+            var positionedWord = (word.Text, word.BoundingBox.Left, word.BoundingBox.Right);
+            if (rows.Count == 0 || Math.Abs(rows[^1].Baseline - word.BoundingBox.Bottom) > 2.5)
+            {
+                rows.Add((word.BoundingBox.Bottom, new List<(string, double, double)> { positionedWord }));
+            }
+            else
+            {
+                rows[^1].Words.Add(positionedWord);
+            }
+        }
+
+        var orderedRows = rows
+            .OrderByDescending(row => row.Baseline)
+            .Select(row => row.Words.OrderBy(word => word.Left).ToList())
+            .ToList();
+
+        for (var index = 0; index < orderedRows.Count; index++)
+        {
+            var words = orderedRows[index];
+            if (index + 1 < orderedRows.Count
+                && TryExtractProductTableRow(words, orderedRows[index + 1], out var productFields))
+            {
+                foreach (var field in productFields)
+                {
+                    yield return field;
+                }
+
+                index++;
+                continue;
+            }
+
+            yield return ReconstructLine(words);
+        }
+    }
+
+    private static bool TryExtractProductTableRow(
+        List<(string Text, double Left, double Right)> headerWords,
+        List<(string Text, double Left, double Right)> valueWords,
+        out List<string> fields)
+    {
+        fields = new List<string>();
+        var descriptionStart = FindColumnStart(headerWords, "description", "product", "item");
+        var brandStart = FindColumnStart(headerWords, "brand");
+        var modelStart = FindColumnStart(headerWords, "model");
+        var serialStart = FindColumnStart(headerWords, "serial");
+        if (!descriptionStart.HasValue || !brandStart.HasValue || !modelStart.HasValue || !serialStart.HasValue)
+        {
+            return false;
+        }
+
+        var columns = new[]
+        {
+            (Name: "Product Name", Start: descriptionStart.Value),
+            (Name: "Brand", Start: brandStart.Value),
+            (Name: "Model Number", Start: modelStart.Value),
+            (Name: "Serial Number", Start: serialStart.Value)
+        }.OrderBy(column => column.Start).ToArray();
+        var columnBoundaries = columns
+            .Select(column => column.Start)
+            .Concat(new[]
+            {
+                FindColumnStart(headerWords, "qty", "quantity"),
+                FindColumnStart(headerWords, "unit"),
+                FindColumnStart(headerWords, "price")
+            }.Where(start => start.HasValue).Select(start => start.GetValueOrDefault()))
+            .OrderBy(start => start)
+            .ToArray();
+
+        for (var index = 0; index < columns.Length; index++)
+        {
+            var start = columns[index].Start;
+            var end = columnBoundaries.Where(boundary => boundary > start).DefaultIfEmpty(double.MaxValue).Min();
+            var value = string.Join(
+                " ",
+                valueWords
+                    .Where(word => word.Left >= start - 1 && word.Left < end - 1)
+                    .Select(word => word.Text));
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                fields.Add($"{columns[index].Name}: {value}");
+            }
+        }
+
+        return fields.Count > 0;
+    }
+
+    private static double? FindColumnStart(
+        IEnumerable<(string Text, double Left, double Right)> words,
+        params string[] labels)
+    {
+        var labelSet = labels.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var word = words.FirstOrDefault(candidate =>
+            labelSet.Contains(Regex.Replace(candidate.Text, @"[^A-Za-z]", string.Empty)));
+        return word.Text == null ? null : word.Left;
+    }
+
+    private static string ReconstructLine(List<(string Text, double Left, double Right)> words)
+    {
+        var largestGap = 24d;
+        var splitIndex = -1;
+        for (var index = 1; index < words.Count; index++)
+        {
+            var gap = words[index].Left - words[index - 1].Right;
+            if (gap > largestGap)
+            {
+                largestGap = gap;
+                splitIndex = index;
+            }
+        }
+
+        if (splitIndex < 0)
+        {
+            return string.Join(" ", words.Select(word => word.Text));
+        }
+
+        var label = string.Join(" ", words.Take(splitIndex).Select(word => word.Text));
+        var value = string.Join(" ", words.Skip(splitIndex).Select(word => word.Text));
+        return $"{label}: {value}";
     }
 
     private static string RecognizeScannedPdf(byte[] pdfBytes)
@@ -136,7 +283,7 @@ public sealed class InvoiceRecognitionService : IInvoiceRecognitionService
     {
         var match = Regex.Match(
             text,
-            @"(?im)^\s*(?:purchase|invoice|order|transaction|sale)\s+date\s*[:#-]?\s*(?<value>[A-Za-z0-9,./ -]{5,24})",
+            @"(?im)\b(?:purchase|invoice|order|transaction|sale)\s+date\s*[:#-]?\s*(?<value>[A-Za-z0-9,./ -]{5,24})",
             RegexOptions.CultureInvariant);
         if (!match.Success)
         {

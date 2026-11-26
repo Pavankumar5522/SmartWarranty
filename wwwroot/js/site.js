@@ -18,6 +18,41 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  document.querySelectorAll("[data-warranty-status]").forEach(function (select) {
+    var form = select.form;
+    var fields = form && form.querySelector("[data-warranty-fields]");
+    if (!fields) return;
+
+    function updateWarrantyFields() {
+      var isConfirmed = select.value === select.getAttribute("data-confirmed-value");
+      fields.classList.toggle("d-none", !isConfirmed);
+      fields.querySelectorAll("input, select, textarea").forEach(function (input) {
+        input.disabled = !isConfirmed;
+      });
+    }
+
+    select.addEventListener("change", updateWarrantyFields);
+    updateWarrantyFields();
+  });
+
+  document.querySelectorAll("[data-coverage-category]").forEach(function (select) {
+    var form = select.form;
+    var invoiceFields = form && form.querySelector("[data-extended-invoice-fields]");
+    if (!invoiceFields) return;
+
+    function updateInvoiceFields() {
+      var isExtended = select.value === select.getAttribute("data-extended-value");
+      invoiceFields.classList.toggle("d-none", !isExtended);
+      invoiceFields.querySelectorAll("input").forEach(function (input) {
+        input.disabled = !isExtended;
+        input.required = isExtended;
+      });
+    }
+
+    select.addEventListener("change", updateInvoiceFields);
+    updateInvoiceFields();
+  });
+
   document.querySelectorAll("table th").forEach(function (header) {
     if (!header.getAttribute("scope")) header.setAttribute("scope", "col");
   });

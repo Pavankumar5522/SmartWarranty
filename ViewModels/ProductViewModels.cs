@@ -1,9 +1,22 @@
 using System.ComponentModel.DataAnnotations;
+using SmartWarranty_2.Models;
 
 namespace SmartWarranty_2.ViewModels;
 
 public class ProductRegistrationViewModel
 {
+    public Guid? InvoiceDraftId { get; set; }
+
+    [StringLength(5)]
+    public string? InvoiceDraftExtension { get; set; }
+
+    [StringLength(200)]
+    public string? InvoiceDraftFileName { get; set; }
+
+    public bool InvoiceTextFound { get; set; }
+
+    public bool InvoiceFieldsFound { get; set; }
+
     [Required, StringLength(120)]
     [Display(Name = "Product Name")]
     public string Name { get; set; } = string.Empty;
@@ -34,12 +47,32 @@ public class ProductRegistrationViewModel
     [Required, StringLength(120)]
     [Display(Name = "Seller Name")]
     public string SellerName { get; set; } = string.Empty;
+
+    [Required]
+    [Display(Name = "Warranty situation")]
+    public WarrantyInformationStatus? ManufacturerWarrantyStatus { get; set; }
+
+    [DataType(DataType.Date)]
+    [Display(Name = "Warranty Start Date")]
+    public DateTime? WarrantyStartDate { get; set; }
+
+    [Range(1, 240)]
+    [Display(Name = "Warranty Duration (Months)")]
+    public int? WarrantyDurationMonths { get; set; }
+
+    [StringLength(80)]
+    [Display(Name = "Warranty Type")]
+    public string? WarrantyType { get; set; } = "Standard";
 }
 
 public class WarrantyRegistrationViewModel
 {
     [Required]
     public int ProductId { get; set; }
+
+    [Required]
+    [Display(Name = "Coverage category")]
+    public WarrantyCoverageCategory? CoverageCategory { get; set; }
 
     [Required]
     [DataType(DataType.Date)]
@@ -54,6 +87,9 @@ public class WarrantyRegistrationViewModel
     [Required]
     [Display(Name = "Warranty Type")]
     public string WarrantyType { get; set; } = "Standard";
+
+    [Display(Name = "Extended warranty invoice")]
+    public IFormFile? ExtendedWarrantyInvoice { get; set; }
 }
 
 public class InvoiceReviewViewModel
