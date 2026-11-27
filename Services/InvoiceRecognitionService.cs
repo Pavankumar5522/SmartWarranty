@@ -274,7 +274,7 @@ public sealed class InvoiceRecognitionService : IInvoiceRecognitionService
     {
         var match = Regex.Match(
             text,
-            $@"(?im)^\s*(?:{labelPattern})\s*[:#-]\s*(?<value>[^\r\n]{{1,120}})",
+            $@"(?im)^\s*(?:{labelPattern})(?:\s*[:#-]\s*|\s+)(?<value>[^\r\n]{{1,120}})",
             RegexOptions.CultureInvariant);
         return match.Success ? match.Groups["value"].Value.Trim() : null;
     }

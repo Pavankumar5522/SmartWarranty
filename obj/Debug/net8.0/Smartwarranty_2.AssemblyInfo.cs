@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Smartwarranty_2")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+03095eb4cddb32dcc81aa6e55cf491b8acbe1440")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7f67b5a40fd6527cff99d2686427efb385edca1b")]
 [assembly: System.Reflection.AssemblyProductAttribute("Smartwarranty_2")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Smartwarranty_2")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
